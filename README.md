@@ -1,2 +1,2 @@
 ## Crossplane LAB  
-Just a bunck of helm charts and templates to play with Crossplane and Upbound.
+Just a bunch of helm charts and templates to play with Crossplane and Upbound.
