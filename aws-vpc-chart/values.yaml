@@ -1,0 +1,35 @@
+# Default values for aws-vpc-chart.
+# These are the values you can override when installing the chart.
+
+# The AWS region where the resources will be created.
+region: eu-central-1
+
+# The name for the providerConfig to be used.
+providerConfigRef: "default"
+
+# VPC configuration
+vpc:
+  cidrBlock: "10.0.0.0/16"
+
+# A list of 3 availability zones to deploy into.
+availabilityZones:
+  - "eu-central-1a"
+  - "eu-central-1b"
+  - "eu-central-1c"
+
+# A list of 3 CIDR blocks for the public subnets.
+publicSubnetCidrs:
+  - "10.0.1.0/24"
+  - "10.0.2.0/24"
+  - "10.0.3.0/24"
+
+# A list of 3 CIDR blocks for the private subnets.
+privateSubnetCidrs:
+  - "10.0.101.0/24"
+  - "10.0.102.0/24"
+  - "10.0.103.0/24"
+
+# Common tags to apply to all resources.
+tags:
+  project: "crossplane-vpc"
+  created-by: "helm-chart"

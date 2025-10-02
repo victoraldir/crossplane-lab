@@ -1,0 +1,13 @@
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: Bucket
+metadata:
+  annotations:
+    meta.helm.sh/release-name: crossplane
+    meta.helm.sh/release-namespace: crossplane-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: log-bucket-random-12345-qwe1
+  namespace: default
+spec:
+  forProvider:
+    region: eu-central-1

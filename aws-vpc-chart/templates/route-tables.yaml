@@ -1,0 +1,55 @@
+# templates/route-tables.yaml
+# Public Route Table
+apiVersion: ec2.crossplane.io/v1beta1
+kind: RouteTable
+metadata:
+  name: {{ .Release.Name }}-public-rt
+  labels:
+    {{- include "aws-vpc-chart.labels" . | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ .Values.region }}
+    vpcIdRef:
+      name: {{ .Release.Name }}-vpc
+    routes:
+      - destinationCidrBlock: "0.0.0.0/0"
+        gatewayIdRef:
+          name: {{ .Release.Name }}-igw
+    tags:
+      - key: Name
+        value: {{ .Release.Name }}-public-rt
+      {{- range $key, $value := .Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ .Values.providerConfigRef }}
+
+# Private Route Tables (one per AZ)
+{{- range $i, $az := .Values.availabilityZones }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: RouteTable
+metadata:
+  name: {{ $.Release.Name }}-private-rt-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    vpcIdRef:
+      name: {{ $.Release.Name }}-vpc
+    routes:
+      - destinationCidrBlock: "0.0.0.0/0"
+        natGatewayIdRef:
+          name: {{ $.Release.Name }}-nat-{{ $i }}
+    tags:
+      - key: Name
+        value: {{ $.Release.Name }}-private-rt-{{ $i }}
+      {{- range $key, $value := $.Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+{{- end }}

@@ -1,0 +1,46 @@
+# templates/nat-gateways.yaml
+{{- range $i, $az := .Values.availabilityZones }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: EIP
+metadata:
+  name: {{ $.Release.Name }}-eip-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    domain: vpc
+    tags:
+      - key: Name
+        value: {{ $.Release.Name }}-eip-{{ $i }}
+      {{- range $key, $value := $.Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: NATGateway
+metadata:
+  name: {{ $.Release.Name }}-nat-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    subnetIdRef:
+      name: {{ $.Release.Name }}-public-subnet-{{ $i }}
+    allocationIdRef:
+      name: {{ $.Release.Name }}-eip-{{ $i }}
+    tags:
+      - key: Name
+        value: {{ $.Release.Name }}-nat-{{ $i }}
+      {{- range $key, $value := $.Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+{{- end }}

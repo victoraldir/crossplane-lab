@@ -1,0 +1,63 @@
+version: '3'
+
+vars:
+  CLUSTER_NAME: '{{.CLUSTER_NAME | default "crossplane-lab"}}'
+
+tasks:
+  init:
+    desc: "Creates a multi-node kind cluster and installs all core components. Usage: task init -- <cluster-name>"
+    cmds:
+      - kind create cluster --name {{.CLUSTER_NAME}} --config kind-cluster/config.yaml
+      - kubectl config use-context kind-{{.CLUSTER_NAME}}
+      - helm repo add upbound-stable https://charts.upbound.io/stable
+      # - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      # - helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+      # - helm repo add argo https://argoproj.github.io/argo-helm
+      # - helm repo update
+      # - helm dependency build core-components/crossplane
+      # - helm dependency build core-components/kube-prometheus-stack
+      # - helm dependency build core-components/ingress-nginx
+      # - helm dependency build core-components/argocd
+      # - helm dependency build core-components/argo-workflows
+      # - helm dependency build core-components/argocd-image-updater
+      # - helm dependency build core-components/argo-rollouts
+      - helm install crossplane --namespace crossplane-system --create-namespace upbound-stable/crossplane --devel -f core-components/crossplane/values.yaml
+      # - helm install prometheus --namespace prometheus --create-namespace -f core-components/kube-prometheus-stack/values.yaml core-components/kube-prometheus-stack
+      # - helm install ingress-nginx --namespace ingress-nginx --create-namespace -f core-components/ingress-nginx/values.yaml core-components/ingress-nginx
+      # - helm install argocd --namespace argocd --create-namespace -f core-components/argocd/values.yaml core-components/argocd
+      # - helm install argo-workflows --namespace argo --create-namespace -f core-components/argo-workflows/values.yaml core-components/argo-workflows
+      # - helm install argo-rollouts --namespace argo-rollouts --create-namespace -f core-components/argo-rollouts/values.yaml core-components/argo-rollouts
+
+  start:
+    desc: "Starts an existing kind cluster. Usage: task start -- <cluster-name>"
+    cmds:
+      - docker start {{.CLUSTER_NAME}}-control-plane {{.CLUSTER_NAME}}-worker {{.CLUSTER_NAME}}-worker2
+
+  stop:
+    desc: "Stops an existing kind cluster. Usage: task stop -- <cluster-name>"
+    cmds:
+      - docker stop {{.CLUSTER_NAME}}-control-plane {{.CLUSTER_NAME}}-worker {{.CLUSTER_NAME}}-worker2
+
+  refresh:
+    desc: "Updates all core components by upgrading helm versions."
+    cmds:
+      - helm repo update
+      - helm upgrade --install crossplane --namespace crossplane-system -f core-components/crossplane/values.yaml core-components/crossplane
+      # - helm upgrade --install prometheus --namespace prometheus -f core-components/kube-prometheus-stack/values.yaml core-components/kube-prometheus-stack
+      # - helm upgrade --install ingress-nginx --namespace ingress-nginx -f core-components/ingress-nginx/values.yaml core-components/ingress-nginx
+      # - helm upgrade --install argocd --namespace argocd -f core-components/argocd/values.yaml core-components/argocd
+      # - helm upgrade --install argo-workflows --namespace argo -f core-components/argo-workflows/values.yaml core-components/argo-workflows
+      # - helm upgrade --install argo-rollouts --namespace argo-rollouts -f core-components/argo-rollouts/values.yaml core-components/argo-rollouts
+
+  delete:
+    desc: "Deletes a kind cluster. Usage: task delete -- <cluster-name>"
+    cmds:
+      - kind delete cluster --name {{.CLUSTER_NAME}}
+
+  expose:
+    desc: "Expose services via port-forwarding. Usage: task expose -- <service-name>"
+    cmds:
+      - kubectl port-forward --namespace prometheus svc/prometheus-grafana 8080:80 &
+      - kubectl port-forward --namespace argocd svc/argocd-server 8081:443 &
+      - kubectl port-forward --namespace argo-rollouts svc/argo-rollouts-dashboard 8082:3100 &
+      

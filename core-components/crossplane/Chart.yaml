@@ -1,0 +1,10 @@
+apiVersion: v2
+name: crossplane
+description: A Helm chart for Crossplane
+type: application
+version: 1.20.1-up.1
+appVersion: "2.0.2"
+dependencies:
+- name: crossplane
+  version: 2.0.2
+  repository: upbound-stable/crossplane

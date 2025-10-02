@@ -1,0 +1,22 @@
+# templates/vpc.yaml
+apiVersion: ec2.crossplane.io/v1beta1
+kind: VPC
+metadata:
+  name: {{ .Release.Name }}-vpc
+  labels:
+    {{- include "aws-vpc-chart.labels" . | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ .Values.region }}
+    cidrBlock: {{ .Values.vpc.cidrBlock }}
+    enableDnsSupport: true
+    enableDnsHostnames: true
+    tags:
+      - key: Name
+        value: {{ .Release.Name }}-vpc
+      {{- range $key, $value := .Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ .Values.providerConfigRef }}

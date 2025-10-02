@@ -1,0 +1,21 @@
+# templates/internet-gateway.yaml
+apiVersion: ec2.crossplane.io/v1beta1
+kind: InternetGateway
+metadata:
+  name: {{ .Release.Name }}-igw
+  labels:
+    {{- include "aws-vpc-chart.labels" . | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ .Values.region }}
+    vpcIdRef:
+      name: {{ .Release.Name }}-vpc
+    tags:
+      - key: Name
+        value: {{ .Release.Name }}-igw
+      {{- range $key, $value := .Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ .Values.providerConfigRef }}

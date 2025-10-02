@@ -1,0 +1,40 @@
+# templates/route-table-associations.yaml
+# Associate public subnets with the public route table
+{{- range $i, $cidr := .Values.publicSubnetCidrs }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: RouteTableAssociation
+metadata:
+  name: {{ $.Release.Name }}-public-rta-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    routeTableIdRef:
+      name: {{ $.Release.Name }}-public-rt
+    subnetIdRef:
+      name: {{ $.Release.Name }}-public-subnet-{{ $i }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+{{- end }}
+
+# Associate private subnets with their respective private route tables
+{{- range $i, $cidr := .Values.privateSubnetCidrs }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: RouteTableAssociation
+metadata:
+  name: {{ $.Release.Name }}-private-rta-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    routeTableIdRef:
+      name: {{ $.Release.Name }}-private-rt-{{ $i }}
+    subnetIdRef:
+      name: {{ $.Release.Name }}-private-subnet-{{ $i }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+{{- end }}

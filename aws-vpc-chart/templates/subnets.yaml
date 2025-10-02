@@ -1,0 +1,59 @@
+# templates/subnets.yaml
+{{- range $i, $cidr := .Values.publicSubnetCidrs }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: Subnet
+metadata:
+  name: {{ $.Release.Name }}-public-subnet-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+    subnet-type: public
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    availabilityZone: {{ index $.Values.availabilityZones $i }}
+    cidrBlock: {{ $cidr }}
+    vpcIdRef:
+      name: {{ $.Release.Name }}-vpc
+    mapPublicIpOnLaunch: true
+    tags:
+      - key: Name
+        value: {{ $.Release.Name }}-public-subnet-{{ $i }}
+      - key: kubernetes.io/role/elb
+        value: "1"
+      {{- range $key, $value := $.Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+{{- end }}
+
+{{- range $i, $cidr := .Values.privateSubnetCidrs }}
+---
+apiVersion: ec2.crossplane.io/v1beta1
+kind: Subnet
+metadata:
+  name: {{ $.Release.Name }}-private-subnet-{{ $i }}
+  labels:
+    {{- include "aws-vpc-chart.labels" $ | nindent 4 }}
+    subnet-type: private
+spec:
+  forProvider:
+    region: {{ $.Values.region }}
+    availabilityZone: {{ index $.Values.availabilityZones $i }}
+    cidrBlock: {{ $cidr }}
+    vpcIdRef:
+      name: {{ $.Release.Name }}-vpc
+    tags:
+      - key: Name
+        value: {{ $.Release.Name }}-private-subnet-{{ $i }}
+      - key: kubernetes.io/role/internal-elb
+        value: "1"
+      {{- range $key, $value := $.Values.tags }}
+      - key: {{ $key }}
+        value: {{ $value | quote }}
+      {{- end }}
+  providerConfigRef:
+    name: {{ $.Values.providerConfigRef }}
+{{- end }}
